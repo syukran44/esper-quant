@@ -1,0 +1,24 @@
+{
+  "name": "quant-esper-server",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "Ethereal",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node --watch --env-file=.env index.ts",
+    "start": "node --env-file=.env index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@notionhq/client": "^5.24.0",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2"
+  }
+}

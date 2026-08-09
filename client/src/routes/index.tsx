@@ -7,7 +7,7 @@ export const Route = createFileRoute('/')({ component: App })
 function App() {
   return (
     <main className="page-wrap px-4 pb-8 pt-14">
-      <div className="w-full h-fit relative bg-transparent pt-1">
+      <div className="w-full h-fit relative bg-transparent pt-1 mb-7">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-2 lg:gap-4">
           <div
             className="rounded-lg border backdrop-blur-sm text-card-foreground shadow-sm hover:shadow-md transition-all duration-200 bg-background">
