@@ -1,162 +1,224 @@
-"use client";
-
-import { addDays, setHours, setMinutes, subDays } from "date-fns";
-import { useState } from "react";
+'use client'
 
 import {
-  type CalendarEvent,
-  EventCalendar,
-} from "@/components/event-calendar";
+  addMonths,
+  eachDayOfInterval,
+  endOfMonth,
+  endOfWeek,
+  format,
+  isSameMonth,
+  isToday,
+  startOfMonth,
+  startOfWeek,
+  subMonths,
+} from 'date-fns'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useMemo, useState } from 'react'
 
-// Sample events data with hardcoded times
-const sampleEvents: CalendarEvent[] = [
-  {
-    allDay: true,
-    color: "sky",
-    description: "Strategic planning for next year",
-    end: subDays(new Date(), 23), // 23 days before today
-    id: "1",
-    location: "Main Conference Hall",
-    start: subDays(new Date(), 24), // 24 days before today
-    title: "Annual Planning",
-  },
-  {
-    color: "amber",
-    description: "Submit final deliverables",
-    end: setMinutes(setHours(subDays(new Date(), 9), 15), 30), // 3:30 PM, 9 days before
-    id: "2",
-    location: "Office",
-    start: setMinutes(setHours(subDays(new Date(), 9), 13), 0), // 1:00 PM, 9 days before
-    title: "Project Deadline",
-  },
-  {
-    allDay: true,
-    color: "orange",
-    description: "Strategic planning for next year",
-    end: subDays(new Date(), 13), // 13 days before today
-    id: "3",
-    location: "Main Conference Hall",
-    start: subDays(new Date(), 13), // 13 days before today
-    title: "Quarterly Budget Review",
-  },
-  {
-    color: "sky",
-    description: "Weekly team sync",
-    end: setMinutes(setHours(new Date(), 11), 0), // 11:00 AM today
-    id: "4",
-    location: "Conference Room A",
-    start: setMinutes(setHours(new Date(), 10), 0), // 10:00 AM today
-    title: "Team Meeting",
-  },
-  {
-    color: "emerald",
-    description: "Discuss new project requirements",
-    end: setMinutes(setHours(addDays(new Date(), 1), 13), 15), // 1:15 PM, 1 day from now
-    id: "5",
-    location: "Downtown Cafe",
-    start: setMinutes(setHours(addDays(new Date(), 1), 12), 0), // 12:00 PM, 1 day from now
-    title: "Lunch with Client",
-  },
-  {
-    allDay: true,
-    color: "violet",
-    description: "New product release",
-    end: addDays(new Date(), 6), // 6 days from now
-    id: "6",
-    start: addDays(new Date(), 3), // 3 days from now
-    title: "Product Launch",
-  },
-  {
-    color: "rose",
-    description: "Discuss about new clients",
-    end: setMinutes(setHours(addDays(new Date(), 5), 14), 45), // 2:45 PM, 5 days from now
-    id: "7",
-    location: "Downtown Cafe",
-    start: setMinutes(setHours(addDays(new Date(), 4), 14), 30), // 2:30 PM, 4 days from now
-    title: "Sales Conference",
-  },
-  {
-    color: "orange",
-    description: "Weekly team sync",
-    end: setMinutes(setHours(addDays(new Date(), 5), 10), 30), // 10:30 AM, 5 days from now
-    id: "8",
-    location: "Conference Room A",
-    start: setMinutes(setHours(addDays(new Date(), 5), 9), 0), // 9:00 AM, 5 days from now
-    title: "Team Meeting",
-  },
-  {
-    color: "sky",
-    description: "Weekly team sync",
-    end: setMinutes(setHours(addDays(new Date(), 5), 15), 30), // 3:30 PM, 5 days from now
-    id: "9",
-    location: "Conference Room A",
-    start: setMinutes(setHours(addDays(new Date(), 5), 14), 0), // 2:00 PM, 5 days from now
-    title: "Review contracts",
-  },
-  {
-    color: "amber",
-    description: "Weekly team sync",
-    end: setMinutes(setHours(addDays(new Date(), 5), 11), 0), // 11:00 AM, 5 days from now
-    id: "10",
-    location: "Conference Room A",
-    start: setMinutes(setHours(addDays(new Date(), 5), 9), 45), // 9:45 AM, 5 days from now
-    title: "Team Meeting",
-  },
-  {
-    color: "emerald",
-    description: "Quarterly marketing planning",
-    end: setMinutes(setHours(addDays(new Date(), 9), 15), 30), // 3:30 PM, 9 days from now
-    id: "11",
-    location: "Marketing Department",
-    start: setMinutes(setHours(addDays(new Date(), 9), 10), 0), // 10:00 AM, 9 days from now
-    title: "Marketing Strategy Session",
-  },
-  {
-    allDay: true,
-    color: "sky",
-    description: "Presentation of yearly results",
-    end: addDays(new Date(), 17), // 17 days from now
-    id: "12",
-    location: "Grand Conference Center",
-    start: addDays(new Date(), 17), // 17 days from now
-    title: "Annual Shareholders Meeting",
-  },
-  {
-    color: "rose",
-    description: "Brainstorming for new features",
-    end: setMinutes(setHours(addDays(new Date(), 27), 17), 0), // 5:00 PM, 27 days from now
-    id: "13",
-    location: "Innovation Lab",
-    start: setMinutes(setHours(addDays(new Date(), 26), 9), 0), // 9:00 AM, 26 days from now
-    title: "Product Development Workshop",
-  },
-];
+import { Button } from '#/components/ui/button'
+import type { DailyPnl } from '#/lib/daily-pnl'
+import { groupTradesByDay, maxAbsPnl, pnlLevel } from '#/lib/daily-pnl'
+import { formatSignedCurrency, pluralize } from '#/lib/format'
+import type { Trade } from '#/lib/types/trade'
+import { cn } from '#/lib/utils'
 
-export default function TradeCalendar() {
-  const [events, setEvents] = useState<CalendarEvent[]>(sampleEvents);
+// Minggu dimulai hari Senin, mengikuti kebiasaan jurnal trading.
+const WEEK_STARTS_ON = 1 as const
 
-  const handleEventAdd = (event: CalendarEvent) => {
-    setEvents([...events, event]);
-  };
+const WEEKDAYS = [
+  { short: 'M', full: 'Monday' },
+  { short: 'T', full: 'Tuesday' },
+  { short: 'W', full: 'Wednesday' },
+  { short: 'T', full: 'Thursday' },
+  { short: 'F', full: 'Friday' },
+  { short: 'S', full: 'Saturday' },
+  { short: 'S', full: 'Sunday' },
+]
 
-  const handleEventUpdate = (updatedEvent: CalendarEvent) => {
-    setEvents(
-      events.map((event) =>
-        event.id === updatedEvent.id ? updatedEvent : event,
-      ),
-    );
-  };
+function levelClass(pnl: number, scale: number) {
+  if (pnl === 0) return 'pnl-flat'
+  return `pnl-${pnl > 0 ? 'g' : 'r'}${pnlLevel(pnl, scale)}`
+}
 
-  const handleEventDelete = (eventId: string) => {
-    setEvents(events.filter((event) => event.id !== eventId));
-  };
+interface TradeCalendarProps {
+  trades?: Array<Trade>
+  isLoading?: boolean
+  /** Dipanggil saat sel hari yang ada tradenya diklik. */
+  onSelectDay?: (day: DailyPnl) => void
+}
+
+export default function TradeCalendar({
+  trades = [],
+  isLoading = false,
+  onSelectDay,
+}: TradeCalendarProps) {
+  const [month, setMonth] = useState(() => startOfMonth(new Date()))
+
+  const byDay = useMemo(() => groupTradesByDay(trades), [trades])
+
+  const gridDays = useMemo(
+    () =>
+      eachDayOfInterval({
+        start: startOfWeek(startOfMonth(month), {
+          weekStartsOn: WEEK_STARTS_ON,
+        }),
+        end: endOfWeek(endOfMonth(month), { weekStartsOn: WEEK_STARTS_ON }),
+      }),
+    [month],
+  )
+
+  // Cocokkan lewat prefix "yyyy-MM" supaya tidak ada parsing tanggal
+  // yang bisa menggeser hari karena timezone.
+  const monthDays = useMemo(() => {
+    const prefix = format(month, 'yyyy-MM')
+    return [...byDay.values()].filter((day) => day.date.startsWith(prefix))
+  }, [byDay, month])
+
+  const scale = maxAbsPnl(monthDays)
+  const monthPnl = monthDays.reduce((sum, day) => sum + day.pnl, 0)
+  const monthTrades = monthDays.reduce((sum, day) => sum + day.tradeCount, 0)
 
   return (
-    <EventCalendar
-      events={events}
-      onEventAdd={handleEventAdd}
-      onEventDelete={handleEventDelete}
-      onEventUpdate={handleEventUpdate}
-    />
-  );
+    <section className="rounded-lg border bg-background shadow-sm">
+      <header className="flex flex-wrap items-center justify-between gap-4 border-b p-4">
+        <div>
+          <h2 className="text-base font-semibold text-foreground">
+            Daily P&amp;L Heatmap
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {pluralize(monthDays.length, 'trading day')} ·{' '}
+            {pluralize(monthTrades, 'trade')} ·{' '}
+            <span
+              className={cn(
+                'font-medium',
+                monthPnl > 0 && 'text-green-600 dark:text-green-400',
+                monthPnl < 0 && 'text-red-600 dark:text-red-400',
+              )}
+            >
+              {formatSignedCurrency(monthPnl)}
+            </span>
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span>Loss</span>
+            <span className="h-3 w-3 rounded-[3px] bg-(--pnl-r3)" />
+            <span className="h-3 w-3 rounded-[3px] bg-(--pnl-r1)" />
+            <span className="h-3 w-3 rounded-[3px] bg-(--pnl-g1)" />
+            <span className="h-3 w-3 rounded-[3px] bg-(--pnl-g4)" />
+            <span>Profit</span>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="Previous month"
+              onClick={() => setMonth(subMonths(month, 1))}
+            >
+              <ChevronLeft />
+            </Button>
+            <span className="min-w-32 text-center text-sm font-medium">
+              {format(month, 'MMMM yyyy')}
+            </span>
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="Next month"
+              onClick={() => setMonth(addMonths(month, 1))}
+            >
+              <ChevronRight />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setMonth(startOfMonth(new Date()))}
+            >
+              Today
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <div className="grid grid-cols-7 p-4">
+        {WEEKDAYS.map((weekday, index) => (
+          <div
+            key={index}
+            className="pb-1 text-center text-xs font-medium text-muted-foreground"
+          >
+            <span aria-hidden="true">{weekday.short}</span>
+            <span className="sr-only">{weekday.full}</span>
+          </div>
+        ))}
+
+        {gridDays.map((day) => {
+          const key = format(day, 'yyyy-MM-dd')
+
+          if (!isSameMonth(day, month)) {
+            return (
+              <div
+                key={key}
+                className="min-h-16 m-0.5 rounded-lg sm:min-h-28"
+              />
+            )
+          }
+
+          const data = byDay.get(key)
+          const interactive = Boolean(data && onSelectDay)
+
+          const className = cn(
+            'flex min-h-16 flex-col justify-between m-0.5 rounded-lg border-[0.7px] p-1.5 text-left transition-colors sm:min-h-28 sm:p-2',
+            isLoading && 'animate-pulse bg-muted',
+            !isLoading &&
+              (data ? levelClass(data.pnl, scale) : 'bg-background'),
+            isToday(day) &&
+              'ring-2 ring-ring ring-offset-1 ring-offset-background',
+            interactive &&
+              'cursor-pointer hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:brightness-125',
+          )
+
+          const content = (
+            <>
+              <span className="text-xs font-medium opacity-80">
+                {format(day, 'd')}
+              </span>
+              {data && !isLoading && (
+                <span className="leading-tight">
+                  <span className="block text-sm font-semibold">
+                    {formatSignedCurrency(data.pnl)}
+                  </span>
+                  <span className="block text-[10px] opacity-70">
+                    {pluralize(data.tradeCount, 'trade')}
+                  </span>
+                </span>
+              )}
+            </>
+          )
+
+          if (!interactive) {
+            return (
+              <div key={key} className={className}>
+                {content}
+              </div>
+            )
+          }
+
+          return (
+            <button
+              key={key}
+              type="button"
+              className={className}
+              aria-label={`${format(day, 'd MMMM yyyy')}, P&L ${formatSignedCurrency(
+                data!.pnl,
+              )}, ${pluralize(data!.tradeCount, 'trade')}`}
+              onClick={() => onSelectDay?.(data!)}
+            >
+              {content}
+            </button>
+          )
+        })}
+      </div>
+    </section>
+  )
 }

@@ -1,6 +1,7 @@
 import { ArrowDownUp, CircleDollarSign, Percent, Target } from 'lucide-react'
 
-import StatCard, { type StatTone } from './stat-card'
+import StatCard from './stat-card'
+import type { StatTone } from './stat-card'
 
 import { formatCurrency, formatPercent } from '#/lib/format'
 import type { TradeStats } from '#/lib/types/trade'
