@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { Layers } from 'lucide-react'
+import { Clock, Layers } from 'lucide-react'
 import { useMemo } from 'react'
 
 import BreakdownCard from '#/components/dashboard/breakdown-card'
+import DetailedStatsCard from '#/components/dashboard/detailed-stats-card'
 import TradeStatsCards from '#/components/dashboard/trade-stats-cards'
 import TradeCalendar from '#/components/trade-calendar'
 import { tradesQueryOptions } from '#/lib/api'
@@ -25,6 +26,11 @@ function App() {
     [data?.trades],
   )
 
+  const bySession = useMemo(
+    () => breakdownBy(data?.trades ?? [], (trade) => trade.session),
+    [data?.trades],
+  )
+
   return (
     <main className="page-wrap px-4 pb-8 pt-14">
       <div className="w-full h-fit relative bg-transparent pt-1 mb-7">
@@ -39,11 +45,25 @@ function App() {
 
       <TradeCalendar trades={data?.trades} isLoading={isPending} />
 
-      <div className="mt-7">
+      <div className="mt-7 grid grid-cols-1 gap-4 md:grid-cols-2">
         <BreakdownCard
           title="By model"
           icon={<Layers />}
           rows={byModel}
+          isLoading={isPending}
+        />
+        <BreakdownCard
+          title="By session"
+          icon={<Clock />}
+          rows={bySession}
+          isLoading={isPending}
+        />
+      </div>
+
+      <div className="mt-7">
+        <DetailedStatsCard
+          stats={data?.stats}
+          detailed={data?.detailed}
           isLoading={isPending}
         />
       </div>

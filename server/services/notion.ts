@@ -1,5 +1,9 @@
 import { Client } from '@notionhq/client';
 
+import {
+  computeDetailedStats,
+  type DetailedStats,
+} from '../lib/detailed-stats.ts';
 import { toSimplifiedTrade } from '../lib/mappers/trade.ts';
 import {
   computeTradeStats,
@@ -18,6 +22,7 @@ const notion = new Client({
 export interface TradesResponse {
   trades: TradingJournalEntrySimplified[];
   stats: TradeStats;
+  detailed: DetailedStats;
 }
 
 export async function getTrades(): Promise<TradesResponse> {
@@ -48,5 +53,9 @@ export async function getTrades(): Promise<TradesResponse> {
   const startingBalance =
     Number(process.env.ACCOUNT_STARTING_BALANCE) || DEFAULT_STARTING_BALANCE;
 
-  return { trades, stats: computeTradeStats(trades, startingBalance) };
+  return {
+    trades,
+    stats: computeTradeStats(trades, startingBalance),
+    detailed: computeDetailedStats(trades),
+  };
 }

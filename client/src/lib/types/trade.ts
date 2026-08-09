@@ -58,7 +58,38 @@ export interface TradeStats {
   returnPct: number
 }
 
+export interface DirectionStats {
+  total: number
+  wins: number
+  losses: number
+  /** Persen 0-100, BE dikecualikan dari pembagi. */
+  winRate: number
+}
+
+export interface DetailedStats {
+  /** Rata-rata R:R rencana (|TP-entry| / |entry-SL|). null kalau tidak ada data harga. */
+  avgPlannedRR: number | null
+  plannedRRSample: number
+  /** Rata-rata R yang terealisasi dari exit price. */
+  expectancyR: number | null
+  realizedRSample: number
+  /** Selalu positif; 0 kalau equity tidak pernah turun dari puncaknya. */
+  maxDrawdown: number
+  recoveryFactor: number | null
+  longs: DirectionStats
+  shorts: DirectionStats
+  bestDayPnl: number
+  worstDayPnl: number
+  tradingDays: number
+  avgDailyPnl: number
+  maxWinStreak: number
+  maxLossStreak: number
+  avgHoldMinutes: number | null
+  pairsTraded: number
+}
+
 export interface TradesResponse {
   trades: Array<Trade>
   stats: TradeStats
+  detailed: DetailedStats
 }

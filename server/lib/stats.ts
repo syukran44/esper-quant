@@ -28,9 +28,9 @@ export interface TradeStats {
 /** Dipakai kalau ACCOUNT_STARTING_BALANCE tidak diset. */
 export const DEFAULT_STARTING_BALANCE = 10000;
 
-type Outcome = 'win' | 'loss' | 'breakEven';
+export type Outcome = 'win' | 'loss' | 'breakEven';
 
-function outcomeOf(trade: TradingJournalEntrySimplified): Outcome {
+export function outcomeOf(trade: TradingJournalEntrySimplified): Outcome {
   if (trade.isBreakEven) return 'breakEven';
   if (trade.profitLoss === null) return trade.isWin ? 'win' : 'loss';
   if (trade.profitLoss > 0) return 'win';
