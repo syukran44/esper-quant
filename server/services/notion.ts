@@ -1,23 +1,52 @@
-import { Client } from "@notionhq/client";
+import { Client } from '@notionhq/client';
+
+import { toSimplifiedTrade } from '../lib/mappers/trade.ts';
+import {
+  computeTradeStats,
+  DEFAULT_STARTING_BALANCE,
+  type TradeStats,
+} from '../lib/stats.ts';
+import type {
+  TradingJournalEntry,
+  TradingJournalEntrySimplified,
+} from '../lib/types/notion-type.ts';
 
 const notion = new Client({
-    auth: process.env.NOTION_ESPER_TOKEN || "",
+  auth: process.env.NOTION_ESPER_TOKEN || '',
 });
 
-export async function getTrades() {
-    const pages = [];
-    let cursor: string | null = null;
+export interface TradesResponse {
+  trades: TradingJournalEntrySimplified[];
+  stats: TradeStats;
+}
 
-    do {
-        const response = await notion.dataSources.query({
-            data_source_id: process.env.NOTION_DATA_SOURCE_ID!,
-            start_cursor: cursor,
-            page_size: 100,
-        });
+export async function getTrades(): Promise<TradesResponse> {
+  const pages: TradingJournalEntry[] = [];
+  let cursor: string | null = null;
 
-        pages.push(...response.results);
-        cursor = response.next_cursor;
-    } while (cursor);
+  do {
+    const response = await notion.dataSources.query({
+      data_source_id: process.env.NOTION_DATA_SOURCE_ID!,
+      start_cursor: cursor,
+      page_size: 100,
+    });
 
-    return pages;
+    // Hasil query bisa berisi partial page (tanpa properties) kalau integrasi
+    // tidak punya akses penuh, jadi disaring dulu sebelum di-map.
+    pages.push(
+      ...(response.results.filter(
+        (page) => 'properties' in page,
+      ) as unknown as TradingJournalEntry[]),
+    );
+    cursor = response.next_cursor;
+  } while (cursor);
+
+  const trades = pages
+    .map(toSimplifiedTrade)
+    .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''));
+
+  const startingBalance =
+    Number(process.env.ACCOUNT_STARTING_BALANCE) || DEFAULT_STARTING_BALANCE;
+
+  return { trades, stats: computeTradeStats(trades, startingBalance) };
 }
