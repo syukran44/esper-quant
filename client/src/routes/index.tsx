@@ -8,10 +8,12 @@ import DetailedStatsCard from '#/components/dashboard/detailed-stats-card'
 import TradeStatsCards from '#/components/dashboard/trade-stats-cards'
 import TradeCalendar from '#/components/trade-calendar'
 import { tradesQueryOptions } from '#/lib/api'
+import { requireAuth } from '#/lib/auth'
 import { breakdownBy } from '#/lib/breakdown'
 
 export const Route = createFileRoute('/')({
   component: App,
+  beforeLoad: ({ location }) => requireAuth(location.href),
   // Prefetch (bukan ensureQueryData) supaya angka sudah ikut ter-render saat SSR,
   // tapi halaman tetap jalan kalau API-nya mati — error-nya ditangani useQuery.
   loader: ({ context }) =>

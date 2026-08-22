@@ -1,3 +1,6 @@
+// Clerk v1.5+ nggak lagi punya <SignedIn>/<SignedOut> — dua-duanya dilebur
+// jadi <Show when="signed-in" | "signed-out">.
+import { Show, UserButton } from '@clerk/tanstack-react-start'
 import { Link } from '@tanstack/react-router'
 import ThemeToggle from './ThemeToggle'
 
@@ -27,6 +30,20 @@ export default function Header() {
 
         <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
           <ThemeToggle />
+
+          <Show when="signed-out">
+            <Link
+              to="/sign-in/$"
+              params={{ _splat: '' }}
+              className="inline-flex items-center rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-3 py-1.5 text-sm font-semibold text-[var(--sea-ink)] no-underline sm:px-4"
+            >
+              Sign in
+            </Link>
+          </Show>
+
+          <Show when="signed-in">
+            <UserButton />
+          </Show>
         </div>
       </nav>
     </header>
